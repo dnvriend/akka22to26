@@ -7,9 +7,14 @@ import akka.persistence.{PersistentActor, RecoveryCompleted}
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
+import scala.util.Try
 
-class Persister(val persistenceId: String)(implicit ec: ExecutionContext) extends PersistentActor with ActorLogging {
-  context.system.scheduler.schedule(0.seconds, 500.millis, self, "FOO")
+object Util {
+  def getProperty(key: String, default: String): String = Try(System.getProperty(key)).toOption.flatMap(Option(_)).getOrElse(default)
+}
+
+class Persister(val persistenceId: String, max: Int = Util.getProperty("max", "10").toInt)(implicit ec: ExecutionContext) extends PersistentActor with ActorLogging {
+  context.system.scheduler.schedule(0.seconds, 300.millis, self, "FOO")
 
   var counter = 0
 
@@ -22,7 +27,7 @@ class Persister(val persistenceId: String)(implicit ec: ExecutionContext) extend
   }
 
   override val receiveCommand: Receive = {
-    case _ if counter < 10 =>
+    case _ if counter < max =>
       persist(UUID.randomUUID().toString) { _ => counter += 1; () }
     case _ =>
       log.debug("Stopping...")

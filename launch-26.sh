@@ -1,3 +1,3 @@
 #!/bin/bash
 cd v26/
-sbt "runMain com.github.dnvriend.Main"
+sbt -Dmax=40 "runMain com.github.dnvriend.Main"
